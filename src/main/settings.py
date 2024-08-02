@@ -36,6 +36,8 @@ INSTALLED_APPS = [
     "finances",
     "residence",
     "announcements",
+    "visitor",
+    "parking",
 ]
 
 MIDDLEWARE = [

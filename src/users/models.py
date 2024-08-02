@@ -79,3 +79,11 @@ class Resident(CustomUser):
     class Meta:
         proxy = True
         
+class Feedback(models.Model):
+    resident_id = models.ForeignKey(Resident, on_delete=models.CASCADE, related_name='resident_feedback')
+    description = models.TextField()
+    rating = models.IntegerField()
+    feedback_date = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Feedback from {self.resident_id}"
