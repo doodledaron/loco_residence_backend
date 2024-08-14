@@ -11,7 +11,7 @@ class Announcement(models.Model):
     is_active = models.BooleanField(default=True)
     is_deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
-    deleted_by = models.ForeignKey(CustomUser, null=True, blank=True, on_delete=models.SET_NULL)
+    deleted_by = models.ForeignKey(CustomUser, null=True, blank=True, on_delete=models.PROTECT)
     
     #in front end, must add an image
     image = models.ImageField(upload_to='announcements/', null=True, blank=True)

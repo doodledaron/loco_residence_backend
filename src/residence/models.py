@@ -1,4 +1,5 @@
 from django.db import models
+from users.models import Resident
 
 class Residence(models.Model):
     name = models.CharField(max_length=100)
@@ -17,7 +18,7 @@ class Residence(models.Model):
     
 class Block(models.Model):
     name = models.CharField(max_length=100)
-    residence_id = models.ForeignKey(Residence, on_delete=models.CASCADE, related_name='blocks')
+    residence_id = models.ForeignKey(Residence, on_delete=models.PROTECT, related_name='blocks')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
@@ -27,7 +28,8 @@ class Block(models.Model):
     
 class Unit(models.Model):
     unit_no = models.CharField(max_length=100)
-    block_id = models.ForeignKey(Block, on_delete=models.CASCADE, related_name='units')
+    resident_id = models.ForeignKey(Resident,on_delete=models.PROTECT, related_name='units', null=True)
+    block_id = models.ForeignKey(Block, on_delete=models.PROTECT, related_name='units',null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
