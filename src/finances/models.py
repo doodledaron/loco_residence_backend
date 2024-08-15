@@ -19,7 +19,7 @@ class Invoice(models.Model):
         return f"Invoice #{self.id} for Resident {self.resident.id} - Amount: {self.amount}"
 
 #history is the paid invoicesP
-class PaidHistory:
+class PaidHistory(models.Model):
     resident = models.ForeignKey(Resident, on_delete=models.PROTECT, related_name='paid_history')
     invoice = models.ForeignKey(Invoice, on_delete=models.PROTECT, related_name='paid_history')
     paid_at = models.DateTimeField(auto_now_add=True)
@@ -28,7 +28,7 @@ class PaidHistory:
     def __str__(self):
         return f"History #{self.id} for Resident {self.resident.id} - Amount: {self.amount}"
 
-class Card:
+class Card(models.Model):
     resident = models.ForeignKey(Resident, on_delete=models.PROTECT, related_name='card')
     card_no = models.CharField(max_length=20, unique=True)
     card_type = models.CharField(max_length=20, choices=[('visa', 'Visa'), ('mastercard', 'Mastercard'), ('amex', 'Amex')])
