@@ -21,3 +21,5 @@ class Announcement(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+        
