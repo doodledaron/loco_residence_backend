@@ -36,10 +36,9 @@ def get_card_by_resident(request, resident_id=None):
 
 @api_view(['GET'])
 def get_invoice_by_resident(request, resident_id=None):
-    try:
-        invoices = Invoice.objects.filter(resident_id=resident_id)
-        if invoices.exists:
-            serializer = InvoiceSerializer(invoices, many=True)
-            return Response(serializer.data)
-    except Invoice.DoesNotExist:
+    invoices = Invoice.objects.filter(resident_id=resident_id)
+    if invoices.exists():
+        serializer = InvoiceSerializer(invoices, many=True)
+        return Response(serializer.data)
+    else:
         return Response({'message': 'Invoice not found'}, status=status.HTTP_404_NOT_FOUND)

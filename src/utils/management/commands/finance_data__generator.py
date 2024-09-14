@@ -1,49 +1,21 @@
-from django.core.management.base import BaseCommand
+# file: management/commands/finance_data_generator.py
+
 from django.utils import timezone
 from faker import Faker
-from users.models import Resident, Feedback
 from finances.models import Invoice, PaidHistory, Card
 import random
-from datetime import timedelta
 
 fake = Faker()
 
-class Command(BaseCommand):
-    help = 'Generates dummy data for testing'
+class FinanceDataGenerator:
+    def __init__(self, stdout, style):
+        self.stdout = stdout
+        self.style = style
 
-    def add_arguments(self, parser):
-        parser.add_argument('count', type=int, help='Number of residents to create')
-
-    def handle(self, *args, **kwargs):
-        count = kwargs['count']
-        self.generate_data(count)
-
-    def generate_data(self, count):
-        for _ in range(count):
-            resident = self.create_resident()
+    def generate_finance_data(self, residents):
+        for resident in residents:  # Loop through each resident
             self.create_invoices(resident)
             self.create_card(resident)
-            self.create_feedback(resident)
-
-    def create_resident(self):
-        first_name = fake.first_name()
-        last_name = fake.last_name()
-        email = fake.email()
-        phone_number = f"01{fake.numerify(text='#' * random.choice([8, 9]))}"  # Malaysian phone format
-
-        resident = Resident.objects.create(
-            first_name=first_name,
-            last_name=last_name,
-            email=email.lower(),
-            phone_number=phone_number,
-            full_name=f"{last_name} {first_name}",
-            role=Resident.Role.RESIDENT
-        )
-        resident.set_password("testpassword123")  # Set a default password
-        resident.save()
-
-        self.stdout.write(self.style.SUCCESS(f'Created resident: {resident}'))
-        return resident
 
     def create_invoices(self, resident):
         for _ in range(random.randint(1, 5)):
@@ -82,15 +54,7 @@ class Command(BaseCommand):
             card_phone=resident.phone_number,
             card_email=resident.email,
             card_dob=fake.date_of_birth(minimum_age=18, maximum_age=90),
-            card_ssn=fake.ssn(),  # Note: Malaysia doesn't use SSN, you might want to replace this
+            card_ssn=fake.ssn(),  # You might replace this with something relevant to your country
             card_status=random.choice(['active', 'inactive']),
         )
         self.stdout.write(self.style.SUCCESS(f'Created card: {card}'))
-
-    def create_feedback(self, resident):
-        feedback = Feedback.objects.create(
-            resident_id=resident,
-            description=fake.text(max_nb_chars=200),
-            rating=random.randint(1, 5),
-        )
-        self.stdout.write(self.style.SUCCESS(f'Created feedback: {feedback}'))
