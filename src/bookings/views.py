@@ -4,17 +4,12 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.request import Request
-from bookings.models import FacilityType, Facility, TimeSlot, Booking
+from bookings.models import Facility, TimeSlot, Booking
 from bookings.utils import get_time_slot_ids
-from .serializers import FacilityTypeSerializer, FacilitySerializer, TimeSlotSerializer, BookingSerializer
+from users.models import Resident
+from .serializers import FacilitySerializer, TimeSlotSerializer, BookingSerializer
 from rest_framework import status
 from datetime import datetime, time
-
-@api_view(['GET'])
-def get_facility_types(request):
-    facility_types = FacilityType.objects.all()
-    serializer = FacilityTypeSerializer(facility_types, many=True)
-    return Response(serializer.data)
 
 
 @api_view(['GET'])
@@ -64,8 +59,22 @@ def get_available_slots(request, facility_id=None, date=None):
 
 
 @api_view(['POST'])
-def create_booking(request, facility_id=None, date=None, start_time_list=None):
-    #sample start time list [8:00:00, 8:30:00, 9:00:00]
+def create_booking(request):
+    #get request data in json
+    resident_id = request.data.get('resident_id')  # Get user_id from request data
+    start_time_list = request.data.get('start_time_list')  # Get start_time_list from request data
+    facility_id = request.data.get('facility_id')  # Get facility_id from request data
+    date = request.data.get('date')  # Get date from request data
+
+
+    if not resident_id:
+        return Response({"error": "Resident ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        resident = Resident.objects.get(id=resident_id)
+    except Resident.DoesNotExist:
+        return Response({"error": "Invalid user ID."}, status=status.HTTP_400_BAD_REQUEST)
+    
     # Ensure all required fields are provided
     if not all([facility_id, date, start_time_list]):
         return Response({"error": "Facility, date and time slot are required."}, status=status.HTTP_400_BAD_REQUEST)
@@ -100,7 +109,7 @@ def create_booking(request, facility_id=None, date=None, start_time_list=None):
         
         # Create booking
         booking = Booking.objects.create(
-            user=request.user,
+            user=resident,
             facility=facility,
             time_slot=time_slot,
             date=date
