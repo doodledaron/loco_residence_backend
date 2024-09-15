@@ -35,22 +35,17 @@ class TimeSlot(models.Model):
 
 
 class Booking(models.Model):
-    resident = models.ForeignKey(Resident, on_delete=models.PROTECT, related_name='bookings')
-    section = models.ForeignKey(FacilitySection, on_delete=models.PROTECT, related_name='bookings')
-    time_slot = models.ForeignKey(TimeSlot, on_delete=models.PROTECT, related_name='bookings')
+    resident = models.ForeignKey(Resident, on_delete=models.PROTECT, related_name='bookings', null=True)
+    section = models.ForeignKey(FacilitySection, on_delete=models.PROTECT, related_name='bookings', null=True, blank=True)
+    time_slot = models.ForeignKey(TimeSlot, on_delete=models.PROTECT, related_name='bookings', null=True)
     booking_date = models.DateTimeField()
     booking_status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('approved', 'Approved'), ('rejected', 'Rejected')], default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
 
-    #rmb to check how booking_status works
     class Meta:
-        #ensures that for a given facility, date, and time slot must be unique --> no double booking
         unique_together = ['section', 'booking_date', 'time_slot']
 
     def __str__(self):
-        return f"{self.resident.username} - {self.section.facility.name} on {self.booking_date} at {self.time_slot.start_time}"
-
-
-
+        return f"{self.resident.username if self.resident else 'No resident'} - {self.section.facility.name if self.section else 'No section'} on {self.booking_date} at {self.time_slot.start_time if self.time_slot else 'No time'}"

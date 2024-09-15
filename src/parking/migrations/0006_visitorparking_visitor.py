@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='visitorparking',
             name='visitor',
-            field=models.ForeignKey(default='default visitor', on_delete=django.db.models.deletion.PROTECT, related_name='visitors_parkings', to='visitor.visitor'),
+            field=models.ForeignKey(default=None, on_delete=django.db.models.deletion.PROTECT, related_name='visitors_parkings', to='visitor.visitor', null=True),
             preserve_default=False,
         ),
     ]
