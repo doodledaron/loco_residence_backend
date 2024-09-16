@@ -46,15 +46,6 @@ class FinanceDataGenerator:
             card_expiry=fake.future_date(end_date='+10y'),
             card_cvv=fake.credit_card_security_code(),
             card_name=resident.full_name,
-            card_address=fake.street_address(),
-            card_city=fake.city(),
-            card_state=fake.state(),
-            card_zip=fake.postcode(),
-            card_country="Malaysia",
-            card_phone=resident.phone_number,
-            card_email=resident.email,
-            card_dob=fake.date_of_birth(minimum_age=18, maximum_age=90),
-            card_ssn=fake.ssn(),  # You might replace this with something relevant to your country
             card_status=random.choice(['active', 'inactive']),
         )
         self.stdout.write(self.style.SUCCESS(f'Created card: {card}'))
