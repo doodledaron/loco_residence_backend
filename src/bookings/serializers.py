@@ -10,7 +10,7 @@ class FacilitySerializer(serializers.ModelSerializer):
 class TimeSlotSerializer(serializers.ModelSerializer):
     class Meta:
         model = TimeSlot
-        fields = ['id', 'start_time', 'duration',]
+        fields = '__all__'
 
 
 class BookingSerializer(serializers.ModelSerializer):
@@ -18,6 +18,6 @@ class BookingSerializer(serializers.ModelSerializer):
     time_slot = TimeSlotSerializer(read_only=True)
     class Meta:
         model = Booking
-        fields = ['id', 'user', 'facility', 'time_slot', 'date']
+        fields = '__all__'
 
 

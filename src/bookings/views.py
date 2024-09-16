@@ -1,10 +1,10 @@
 import datetime
+from django.utils import timezone
 from django.db.models import Count
-from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.request import Request
-from bookings.models import Facility, TimeSlot, Booking
+from bookings.models import Facility, FacilitySection, TimeSlot, Booking
 from bookings.utils import get_time_slot_ids
 from users.models import Resident
 from .serializers import FacilitySerializer, TimeSlotSerializer, BookingSerializer
@@ -20,42 +20,41 @@ def get_facilities(request):
 
 
 @api_view(['GET'])
-def get_available_slots(request, facility_id=None, date=None):
+def get_available_slots(request):
+    facility_id = request.data.get('facility_id')  # Get facility_id from request data
+    date = request.data.get('date')  # Get date from request data
     # Facility id and date must be provided
     if not facility_id or not date:
         return Response({"error": "Both facility and date are required."}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        date = datetime.strptime(date, '%Y-%m-%d').date()
+        # Parse date as a naive date object
+        date = datetime.strptime(date, '%Y-%m-%d')
+        # Make it timezone-aware based on the system's timezone setting
+        date = timezone.make_aware(date)
     except ValueError:
         return Response({"error": "Invalid date format. Use YYYY-MM-DD."}, status=status.HTTP_400_BAD_REQUEST)
 
-    facility = Facility.objects.get(pk=facility_id)
+    # Get facility
+    try:
+        facility = Facility.objects.get(pk=facility_id)
+    except Facility.DoesNotExist:
+        return Response({"error": "Facility not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    # Get all facility sections
+    facility_sections = FacilitySection.objects.filter(facility=facility)
 
     # Get all time slots
-    all_slots = TimeSlot.objects.filter(
-        start_time__gte=time(8, 0),  # 8:00 AM
-        start_time__lt=time(23, 0)   # 11:00 PM
-    ).order_by('start_time')
+    time_slots = TimeSlot.objects.all()
 
-    # Count bookings for each time slot
-    booked_slots = Booking.objects.filter(facility=facility, date=date).values('time_slot').annotate(booked_count=Count('id'))
-
-    # Create a dictionary for quick lookup
-    booked_counts = {item['time_slot']: item['booked_count'] for item in booked_slots}
-
-    # Determine available slots
-    available_slots = []
-    for slot in all_slots:
-        booked_count = booked_counts.get(slot.id, 0)  # Get the number of bookings for this slot, default to 0 if none
-        available_units = facility.total_units - booked_count  # Calculate how many units are still available
-        if available_units > 0:
-            slot.available_units = available_units  # Add available_units as an attribute to the slot instance
-            available_slots.append(slot)  # Append the TimeSlot instance itself
+    # Get all bookings for the facility sections on the specified date
+    bookings = Booking.objects.filter(booking_date=date)
 
     # Serialize the result
-    serializer = TimeSlotSerializer(available_slots, many=True)
+    serializer = BookingSerializer(bookings, many=True)
     return Response(serializer.data)
+
+
 
 
 @api_view(['POST'])

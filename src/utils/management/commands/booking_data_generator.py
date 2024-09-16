@@ -21,10 +21,7 @@ class BookingDataGenerator:
             section = random.choice(facility.sections.all())
             time_slot = random.choice(time_slots)
             resident = random.choice(residents)
-            booking_date = timezone.make_aware(datetime.combine(
-                start_date + timedelta(days=random.randint(0, 30)),
-                time_slot.start_time
-            ))
+            booking_date = start_date + timedelta(days=random.randint(0, 30))
             booking_status = 'approved'
 
             if not Booking.objects.filter(section=section, booking_date=booking_date, time_slot=time_slot).exists():
@@ -36,9 +33,9 @@ class BookingDataGenerator:
                     booking_status=booking_status
                 )
                 self.stdout.write(self.style.SUCCESS(
-                    f'Created booking for {resident.email} at {section.facility.name} - {section.section_name} '
-                    f'on {booking_date.date()} at {time_slot.start_time}, Status: {booking_status}'
-                ))
+                                f'Created booking for {resident.email} at {section.facility.name} - {section.section_name} '
+                                f'on {booking_date} (Date), Status: {booking_status}'
+                            ))
 
     def generate_all_bookings(self, residents, facilities, time_slots, num_bookings=30):
         self.generate_bookings(residents, facilities, time_slots, num_bookings)

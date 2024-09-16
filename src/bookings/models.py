@@ -38,7 +38,7 @@ class Booking(models.Model):
     resident = models.ForeignKey(Resident, on_delete=models.PROTECT, related_name='bookings', null=True)
     section = models.ForeignKey(FacilitySection, on_delete=models.PROTECT, related_name='bookings', null=True, blank=True)
     time_slot = models.ForeignKey(TimeSlot, on_delete=models.PROTECT, related_name='bookings', null=True)
-    booking_date = models.DateTimeField()
+    booking_date = models.DateField()
     booking_status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('approved', 'Approved'), ('rejected', 'Rejected')], default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
