@@ -52,6 +52,7 @@ class FacilityDataGenerator:
         return time_slots
 
     def generate_all_data(self):
-        self.generate_facilities()
-        self.generate_time_slots()
+        facilities = self.generate_facilities()
+        time_slots = self.generate_time_slots()
         self.stdout.write(self.style.SUCCESS('All facility data generated successfully!'))
+        return facilities, time_slots

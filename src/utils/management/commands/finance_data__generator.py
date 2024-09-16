@@ -27,13 +27,11 @@ class FinanceDataGenerator:
             self.stdout.write(self.style.SUCCESS(f'Created invoice: {invoice}'))
 
             if invoice.status == 'paid':
-                self.create_paid_history(resident, invoice)
+                self.create_paid_history(invoice)
 
-    def create_paid_history(self, resident, invoice):
+    def create_paid_history(self, invoice):
         paid_history = PaidHistory.objects.create(
-            resident=resident,
             invoice=invoice,
-            amount=invoice.amount,
             paid_at=fake.date_time_between(start_date=invoice.created_at, end_date=timezone.now())
         )
         self.stdout.write(self.style.SUCCESS(f'Created paid history: {paid_history}'))

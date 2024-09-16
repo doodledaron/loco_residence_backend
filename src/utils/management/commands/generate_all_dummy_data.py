@@ -26,12 +26,11 @@ class Command(BaseCommand):
 
         # Generate facilities and time slots
         facility_generator = FacilityDataGenerator(self.stdout, self.style)
-        facilities = facility_generator.generate_facilities()
-        time_slots = facility_generator.generate_time_slots()
+        facilities, timeslots = facility_generator.generate_all_data()
 
         # Generate bookings
         booking_generator = BookingDataGenerator(self.stdout, self.style)
-        booking_generator.generate_bookings(users, facilities, time_slots)
+        booking_generator.generate_bookings(users, facilities, timeslots)
 
         #Generate finances
         finance_generator = FinanceDataGenerator(self.stdout, self.style)

@@ -36,7 +36,7 @@ class PaidHistory(models.Model):
     paid_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"History #{self.id} for Resident {self.resident.id} - Amount: {self.amount}"
+        return f"History #{self.id} for Resident {self.invoice.resident} - Amount: {self.invoice.amount}"
 
 class Card(models.Model):
     resident = models.ForeignKey(Resident, on_delete=models.PROTECT, related_name='card')

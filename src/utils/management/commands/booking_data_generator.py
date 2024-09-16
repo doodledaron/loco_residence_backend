@@ -1,6 +1,6 @@
 from django.utils import timezone
-from datetime import timedelta
-from bookings.models import Booking
+from datetime import timedelta, datetime
+from bookings.models import Booking, FacilitySection
 import random
 
 class BookingDataGenerator:
@@ -8,20 +8,38 @@ class BookingDataGenerator:
         self.stdout = stdout
         self.style = style
 
-    def generate_bookings(self, users, facilities, time_slots, num_bookings=30):
+    def generate_bookings(self, residents, facilities, time_slots, num_bookings=30):
         start_date = timezone.now().date()
+        booking_statuses = ['pending', 'approved', 'rejected']
 
         for _ in range(num_bookings):
             facility = random.choice(facilities)
-            time_slot = random.choice(time_slots)
-            user = random.choice(users)
-            date = start_date + timedelta(days=random.randint(0, 30))
+            
+            if not facility.booking_required:
+                continue  # Skip facilities that don't require booking (e.g., gym)
 
-            if not Booking.objects.filter(facility=facility, date=date, time_slot=time_slot).exists():
+            section = random.choice(facility.sections.all())
+            time_slot = random.choice(time_slots)
+            resident = random.choice(residents)
+            booking_date = timezone.make_aware(datetime.combine(
+                start_date + timedelta(days=random.randint(0, 30)),
+                time_slot.start_time
+            ))
+            booking_status = 'approved'
+
+            if not Booking.objects.filter(section=section, booking_date=booking_date, time_slot=time_slot).exists():
                 booking = Booking.objects.create(
-                    user=user,
-                    facility=facility,
-                    date=date,
-                    time_slot=time_slot
+                    resident=resident,
+                    section=section,
+                    time_slot=time_slot,
+                    booking_date=booking_date,
+                    booking_status=booking_status
                 )
-                self.stdout.write(self.style.SUCCESS(f'Created booking for {user.full_name} at {facility.name} on {date} during {time_slot.start_time}'))
+                self.stdout.write(self.style.SUCCESS(
+                    f'Created booking for {resident.email} at {section.facility.name} - {section.section_name} '
+                    f'on {booking_date.date()} at {time_slot.start_time}, Status: {booking_status}'
+                ))
+
+    def generate_all_bookings(self, residents, facilities, time_slots, num_bookings=30):
+        self.generate_bookings(residents, facilities, time_slots, num_bookings)
+        self.stdout.write(self.style.SUCCESS('All booking data generated successfully!'))
