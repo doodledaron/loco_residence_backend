@@ -3,6 +3,8 @@ from residence.models import Block
 from users.models import Resident
 from django.apps import apps
 
+from visitor.models import Visitor
+
 
 class Parking(models.Model):
     block = models.ForeignKey(Block, on_delete=models.PROTECT, related_name='parkings', null=True)
@@ -33,7 +35,7 @@ class ResidentParking(models.Model):
 
 class VisitorParking(models.Model):
     #visitor.Visitor to avoid circular import
-    visitor = models.ForeignKey('visitor.Visitor', on_delete=models.PROTECT, related_name='visitors_parkings', null=True)
+    visitor = models.OneToOneField(Visitor, on_delete=models.PROTECT, related_name='visitors_parkings', null=True)
     parking = models.ForeignKey(Parking, on_delete=models.PROTECT, related_name='visitor_parkings', null=True)  # Updated related_name for clarity
     is_occupied = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)  # Soft deletion field

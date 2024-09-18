@@ -14,7 +14,6 @@ class Visitor(models.Model):
     check_in_time = models.DateTimeField(auto_now_add=False)
     check_out_time = models.DateTimeField(auto_now_add=False, null=True)
     purpose_of_visit = models.CharField(max_length=100)
-    visitor_parking = models.OneToOneField('parking.VisitorParking', on_delete=models.CASCADE, related_name='assigned_visitor', null=True)
 
     @property
     def visitor_model(self):
