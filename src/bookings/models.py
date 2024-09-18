@@ -1,6 +1,8 @@
+from datetime import timezone
+import datetime
 from django.db import models
 from users.models import Resident
-
+import django.utils.timezone
 class Facility(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
@@ -25,8 +27,8 @@ class FacilitySection(models.Model):
 
 class TimeSlot(models.Model):
     #duration per time slot is half an hour in defailt
-    start_time = models.TimeField()
-    end_time = models.TimeField()
+    start_time = models.TimeField(default=datetime.datetime.now())
+    end_time = models.TimeField(default=datetime.datetime.now())
     
 
     def __str__(self):

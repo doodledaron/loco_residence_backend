@@ -5,7 +5,7 @@ from django.apps import apps
 
 
 class Parking(models.Model):
-    block = models.ForeignKey(Block, on_delete=models.PROTECT, related_name='parkings')
+    block = models.ForeignKey(Block, on_delete=models.PROTECT, related_name='parkings', null=True)
     parking_no = models.CharField(max_length=100, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -22,8 +22,8 @@ class Parking(models.Model):
 
 
 class ResidentParking(models.Model):
-    parking = models.ForeignKey(Parking, on_delete=models.PROTECT, related_name='resident_parkings')
-    resident = models.ForeignKey(Resident, on_delete=models.PROTECT, related_name='resident_parkings')
+    parking = models.ForeignKey(Parking, on_delete=models.PROTECT, related_name='resident_parkings', null=True)
+    resident = models.ForeignKey(Resident, on_delete=models.PROTECT, related_name='resident_parkings', null=True)
     is_occupied = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)  # Soft deletion field
 
@@ -33,7 +33,7 @@ class ResidentParking(models.Model):
 
 class VisitorParking(models.Model):
     #visitor.Visitor to avoid circular import
-    visitor = models.ForeignKey('visitor.Visitor', on_delete=models.PROTECT, related_name='visitors_parkings')
+    visitor = models.ForeignKey('visitor.Visitor', on_delete=models.PROTECT, related_name='visitors_parkings', null=True)
     parking = models.ForeignKey(Parking, on_delete=models.PROTECT, related_name='visitor_parkings', null=True)  # Updated related_name for clarity
     is_occupied = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)  # Soft deletion field

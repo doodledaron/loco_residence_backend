@@ -5,7 +5,7 @@ from users.models import Resident
 
 # Create your models here.
 class Visitor(models.Model):
-    resident = models.ForeignKey(Resident, on_delete=models.CASCADE)
+    resident = models.ForeignKey(Resident, on_delete=models.CASCADE, related_name='visitors', null=True)
     full_name = models.CharField(max_length=100)
     hp_number = models.CharField(max_length=100)
     car_plate_no = models.CharField(max_length=100)

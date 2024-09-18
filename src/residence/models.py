@@ -17,7 +17,7 @@ class Residence(models.Model):
         return f"{self.name} in {self.city}, {self.state}"
     
 class Block(models.Model):
-    residence = models.ForeignKey(Residence, on_delete=models.PROTECT, related_name='blocks')
+    residence = models.ForeignKey(Residence, on_delete=models.PROTECT, related_name='blocks', null=True)
     name = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
