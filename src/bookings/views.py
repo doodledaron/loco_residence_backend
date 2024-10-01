@@ -1,3 +1,4 @@
+from collections import defaultdict
 import datetime
 from django.utils import timezone
 from django.db.models import Count
@@ -49,11 +50,19 @@ def get_available_time_slots(request):
     # Get all bookings for the facility sections on the specified date
     bookings = Booking.objects.filter(booking_date=date, section__in=facility_sections)
 
-    #booked time slots, returns a list of time slot ids
-    booked_time_slots = bookings.values_list('time_slot', flat=True)
+    # Group bookings by time slot
+    booked_slots_by_time = defaultdict(list)
+    for booking in bookings:
+        booked_slots_by_time[booking.time_slot.id].append(booking.section.id)
 
-    # Get all available time slots (exclude booked ones)
-    available_time_slots = time_slots.exclude(id__in=booked_time_slots)
+    # Find fully booked time slots (i.e., where all sections are booked)
+    fully_booked_slots = []
+    for time_slot_id, booked_sections in booked_slots_by_time.items():
+        if len(booked_sections) == facility_sections.count():  # All sections are booked for this time slot
+            fully_booked_slots.append(time_slot_id)
+
+    # Get all available time slots (exclude those fully booked for all sections)
+    available_time_slots = time_slots.exclude(id__in=fully_booked_slots)
 
     # Serialize the available time slots
     serializer = TimeSlotSerializer(available_time_slots, many=True)
