@@ -20,8 +20,8 @@ def get_facilities(request):
 #get the available time slots based on facility and date
 @api_view(['GET'])
 def get_available_time_slots(request):
-    facility_id = request.data.get('facility_id')  # Get facility_id from request data
-    date = request.data.get('date')  # Get date from request data
+    facility_id = request.GET.get('facility_id')  # Get facility_id from request data
+    date = request.GET.get('date')  # Get date from request data
     # Facility id and date must be provided
     if not facility_id or not date:
         return Response({"error": "Both facility and date are required."}, status=status.HTTP_400_BAD_REQUEST)
@@ -64,21 +64,20 @@ def get_available_time_slots(request):
 @api_view(['GET'])
 def get_available_facility_sections(request):
     # Extract data from JSON request body
-    facility = request.data.get('facility_id')
-    date = request.data.get('date')
-    time_slots = request.data.get('time_slots', [])  # List of time slots in 'HH:MM:SS' format
+    facility = request.GET.get('facility_id')
+    date = request.GET.get('date')
+    time_slots = request.GET.getlist('time_slots')  # Use getlist to fetch multiple parameters
 
     # Validate that all required fields are present
-    if not all([facility, date, time_slots]):
+    if not all([facility, date]) or not time_slots:  # Check for time_slots here
         return Response({"error": "Missing required parameters"}, status=400)
     
     # Ensure time_slots is a list of strings
-    if not isinstance(time_slots, list) or not all(isinstance(slot, str) for slot in time_slots):
+    if not all(isinstance(slot, str) for slot in time_slots):
         return Response({"error": "Invalid time_slots format"}, status=400)
     
     # get the time slot based on the time slot list
     time_slots = TimeSlot.objects.filter(start_time__in=time_slots)
-
 
     # Get section IDs that are already booked for any of the specified time slots
     booked_section_ids = Booking.objects.filter(
@@ -98,13 +97,14 @@ def get_available_facility_sections(request):
     
     return Response(available_sections_data)
 
+
 # book a facility section based on the facility, section, date and time slot
 @api_view(['POST'])
 def book_facility_section(request):
-    facility = request.data.get('facility_id')
-    date = request.data.get('date')
-    time_slots = request.data.get('time_slots', [])  # List of time slots in 'HH:MM:SS' format
-    section = request.data.get('section_id')
+    facility = request.GET.get('facility_id')
+    date = request.GET.get('date')
+    time_slots = request.GET.get('time_slots', [])  # List of time slots in 'HH:MM:SS' format
+    section = request.GET.get('section_id')
     resident = Resident.objects.get(pk=1) # Assuming the resident is already authenticated
     
     # Validate that all required fields are present
@@ -149,10 +149,10 @@ def book_facility_section(request):
 #cancel a booking based on facility, date, time slots and section
 @api_view(['POST', "DELETE"])
 def cancel_booking(request):
-    facility = request.data.get('facility_id')
-    date = request.data.get('date')
-    time_slots = request.data.get('time_slots', [])  # List of time slots in 'HH:MM:SS' format
-    section_id = request.data.get('section_id')
+    facility = request.GET.get('facility_id')
+    date = request.GET.get('date')
+    time_slots = request.GET.get('time_slots', [])  # List of time slots in 'HH:MM:SS' format
+    section_id = request.GET.get('section_id')
     resident = Resident.objects.get(pk=1)  # Assuming the resident is already authenticated
     
     # Validate that all required fields are present
@@ -191,8 +191,8 @@ def cancel_booking(request):
 #get the booked time slots based on facility and date
 @api_view(['GET'])
 def get_booked_time_slots(request):
-    facility_id = request.data.get('facility_id')  # Get facility_id from request data
-    date = request.data.get('date')  # Get date from request data
+    facility_id = request.GET.get('facility_id')  # Get facility_id from request data
+    date = request.GET.get('date')  # Get date from request data
 
     # Facility id and date must be provided
     if not facility_id or not date:
