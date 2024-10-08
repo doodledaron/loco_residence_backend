@@ -110,10 +110,10 @@ def get_available_facility_sections(request):
 # book a facility section based on the facility, section, date and time slot
 @api_view(['POST'])
 def book_facility_section(request):
-    facility = request.GET.get('facility_id')
-    date = request.GET.get('date')
-    time_slots = request.GET.get('time_slots', [])  # List of time slots in 'HH:MM:SS' format
-    section = request.GET.get('section_id')
+    facility = request.data.get('facility_id')
+    date = request.data.get('date')
+    time_slots = request.data.get('time_slots', [])  # List of time slots in 'HH:MM:SS' format
+    section = request.data.get('section_id')
     resident = Resident.objects.get(pk=1) # Assuming the resident is already authenticated
     
     # Validate that all required fields are present
@@ -158,10 +158,10 @@ def book_facility_section(request):
 #cancel a booking based on facility, date, time slots and section
 @api_view(['POST', "DELETE"])
 def cancel_booking(request):
-    facility = request.GET.get('facility_id')
-    date = request.GET.get('date')
-    time_slots = request.GET.get('time_slots', [])  # List of time slots in 'HH:MM:SS' format
-    section_id = request.GET.get('section_id')
+    facility = request.data.get('facility_id')
+    date = request.data.get('date')
+    time_slots = request.data.get('time_slots', [])  # List of time slots in 'HH:MM:SS' format
+    section_id = request.data.get('section_id')
     resident = Resident.objects.get(pk=1)  # Assuming the resident is already authenticated
     
     # Validate that all required fields are present
