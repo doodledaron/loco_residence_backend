@@ -145,15 +145,20 @@ def book_facility_section(request):
     
 
     # Create bookings for all time slots
+    bookings = []  # List to hold created booking instances
     for time_slot in time_slots:
-        Booking.objects.create(
+        booking = Booking.objects.create(
             resident=resident,
             section=section,
             time_slot=time_slot,
             booking_date=date
         )
+        bookings.append(booking)  # Add the booking to the list
 
-    return Response({"message": "Booking successful"}, status=201)
+    # Serialize booking details
+    serializer = BookingSerializer(bookings, many=True)
+
+    return Response({"message": "Booking successful", "bookings": serializer.data}, status=201)
 
 #cancel a booking based on facility, date, time slots and section
 @api_view(['POST', "DELETE"])
