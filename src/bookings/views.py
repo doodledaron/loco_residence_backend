@@ -1,3 +1,4 @@
+from collections import defaultdict
 import datetime
 from django.utils import timezone
 from django.db.models import Count
@@ -20,8 +21,8 @@ def get_facilities(request):
 #get the available time slots based on facility and date
 @api_view(['GET'])
 def get_available_time_slots(request):
-    facility_id = request.data.get('facility_id')  # Get facility_id from request data
-    date = request.data.get('date')  # Get date from request data
+    facility_id = request.GET.get('facility_id')  # Get facility_id from request data
+    date = request.GET.get('date')  # Get date from request data
     # Facility id and date must be provided
     if not facility_id or not date:
         return Response({"error": "Both facility and date are required."}, status=status.HTTP_400_BAD_REQUEST)
@@ -49,11 +50,19 @@ def get_available_time_slots(request):
     # Get all bookings for the facility sections on the specified date
     bookings = Booking.objects.filter(booking_date=date, section__in=facility_sections)
 
-    #booked time slots, returns a list of time slot ids
-    booked_time_slots = bookings.values_list('time_slot', flat=True)
+    # Group bookings by time slot
+    booked_slots_by_time = defaultdict(list)
+    for booking in bookings:
+        booked_slots_by_time[booking.time_slot.id].append(booking.section.id)
 
-    # Get all available time slots (exclude booked ones)
-    available_time_slots = time_slots.exclude(id__in=booked_time_slots)
+    # Find fully booked time slots (i.e., where all sections are booked)
+    fully_booked_slots = []
+    for time_slot_id, booked_sections in booked_slots_by_time.items():
+        if len(booked_sections) == facility_sections.count():  # All sections are booked for this time slot
+            fully_booked_slots.append(time_slot_id)
+
+    # Get all available time slots (exclude those fully booked for all sections)
+    available_time_slots = time_slots.exclude(id__in=fully_booked_slots)
 
     # Serialize the available time slots
     serializer = TimeSlotSerializer(available_time_slots, many=True)
@@ -64,21 +73,20 @@ def get_available_time_slots(request):
 @api_view(['GET'])
 def get_available_facility_sections(request):
     # Extract data from JSON request body
-    facility = request.data.get('facility_id')
-    date = request.data.get('date')
-    time_slots = request.data.get('time_slots', [])  # List of time slots in 'HH:MM:SS' format
+    facility = request.GET.get('facility_id')
+    date = request.GET.get('date')
+    time_slots = request.GET.getlist('time_slots')  # Use getlist to fetch multiple parameters
 
     # Validate that all required fields are present
-    if not all([facility, date, time_slots]):
+    if not all([facility, date]) or not time_slots:  # Check for time_slots here
         return Response({"error": "Missing required parameters"}, status=400)
     
     # Ensure time_slots is a list of strings
-    if not isinstance(time_slots, list) or not all(isinstance(slot, str) for slot in time_slots):
+    if not all(isinstance(slot, str) for slot in time_slots):
         return Response({"error": "Invalid time_slots format"}, status=400)
     
     # get the time slot based on the time slot list
     time_slots = TimeSlot.objects.filter(start_time__in=time_slots)
-
 
     # Get section IDs that are already booked for any of the specified time slots
     booked_section_ids = Booking.objects.filter(
@@ -97,6 +105,7 @@ def get_available_facility_sections(request):
     available_sections_data = available_sections.values('id', 'section_name')  # Adjust fields as needed
     
     return Response(available_sections_data)
+
 
 # book a facility section based on the facility, section, date and time slot
 @api_view(['POST'])
@@ -136,15 +145,20 @@ def book_facility_section(request):
     
 
     # Create bookings for all time slots
+    bookings = []  # List to hold created booking instances
     for time_slot in time_slots:
-        Booking.objects.create(
+        booking = Booking.objects.create(
             resident=resident,
             section=section,
             time_slot=time_slot,
             booking_date=date
         )
+        bookings.append(booking)  # Add the booking to the list
 
-    return Response({"message": "Booking successful"}, status=201)
+    # Serialize booking details
+    serializer = BookingSerializer(bookings, many=True)
+
+    return Response({"message": "Booking successful", "bookings": serializer.data}, status=201)
 
 #cancel a booking based on facility, date, time slots and section
 @api_view(['POST', "DELETE"])
@@ -191,8 +205,8 @@ def cancel_booking(request):
 #get the booked time slots based on facility and date
 @api_view(['GET'])
 def get_booked_time_slots(request):
-    facility_id = request.data.get('facility_id')  # Get facility_id from request data
-    date = request.data.get('date')  # Get date from request data
+    facility_id = request.GET.get('facility_id')  # Get facility_id from request data
+    date = request.GET.get('date')  # Get date from request data
 
     # Facility id and date must be provided
     if not facility_id or not date:
