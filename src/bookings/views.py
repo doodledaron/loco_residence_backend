@@ -163,44 +163,41 @@ def book_facility_section(request):
 #cancel a booking based on facility, date, time slots and section
 @api_view(['POST', "DELETE"])
 def cancel_booking(request):
-    facility = request.data.get('facility_id')
-    date = request.data.get('date')
-    time_slots = request.data.get('time_slots', [])  # List of time slots in 'HH:MM:SS' format
-    section_id = request.data.get('section_id')
-    resident = Resident.objects.get(pk=1)  # Assuming the resident is already authenticated
-    
-    # Validate that all required fields are present
-    if not all([facility, date, time_slots, section_id]):
-        return Response({"error": "Missing required parameters"}, status=400)
-    
-    # Ensure time_slots is a list of strings
-    if not isinstance(time_slots, list) or not all(isinstance(slot, str) for slot in time_slots):
-        return Response({"error": "Invalid time_slots format"}, status=400)
-    
-    # Get the time slots based on the time slot list
-    time_slots_queryset = TimeSlot.objects.filter(start_time__in=time_slots)
-
-    # Get the facility section based on section id
-    try:
-        section = FacilitySection.objects.get(id=section_id)
-    except FacilitySection.DoesNotExist:
-        return Response({"error": "Invalid section ID"}, status=400)
+    booking_id = request.data.get('booking_id')  # Get facility_id from request data
+    resident = Resident.objects.get(pk=1) # Assuming the resident is already authenticated
     
     # Find bookings that match the criteria
     bookings_to_cancel = Booking.objects.filter(
-        section=section,
-        booking_date=date,
-        time_slot__in=time_slots_queryset,
+        pk=booking_id,
         resident=resident
+        
     )
     
     if not bookings_to_cancel.exists():
         return Response({"error": "No bookings found to cancel for the given parameters"}, status=404)
     
+    canceled_booking = bookings_to_cancel.first()
+
     # Cancel bookings
     bookings_to_cancel.delete()
 
-    return Response({"message": "Bookings canceled successfully"}, status=200)
+    return Response({"message": "Bookings canceled successfully", 
+                     "canceled_booking" : {
+                            "id": canceled_booking.id,
+                            "section": canceled_booking.section.section_name,
+                            "date": canceled_booking.booking_date,
+                     }}, status=200)
+
+
+#get all the bookings
+@api_view(['GET'])
+def get_all_bookings(request):
+    resident = Resident.objects.get(pk=1)  # Assuming the resident is already authenticated
+    bookings = Booking.objects.filter(
+        resident=resident
+    )
+    serializer = BookingSerializer(bookings, many=True)
+    return Response(serializer.data)
 
 #get the booked time slots based on facility and date
 @api_view(['GET'])
