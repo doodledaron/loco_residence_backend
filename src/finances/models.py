@@ -53,3 +53,4 @@ class Card(models.Model):
     def __str__(self):
         return f"Card #{self.id} for Resident {self.resident.id} - Card Type: {self.card_type}"
     
+    
