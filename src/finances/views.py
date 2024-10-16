@@ -42,3 +42,26 @@ def get_invoice_by_resident(request, resident_id=None):
         return Response(serializer.data)
     else:
         return Response({'message': 'Invoice not found'}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['PUT'])
+def update_card_details(request, resident_id=None, card_id=None):
+    try:
+        # Get the card instance based on the resident ID and card ID
+        card = Card.objects.get(resident_id=resident_id, id=card_id)
+
+        # Deserialize the incoming data using CardSerializer
+        serializer = CardSerializer(card, data=request.data)
+
+        # Check if the incoming data is valid
+        if serializer.is_valid():
+            # Save the updated card details
+            serializer.save()
+            logger.info(f'Card {card_id} updated successfully for resident {resident_id}')
+            return Response(serializer.data)
+        else:
+            logger.error(f'Invalid data for card update: {serializer.errors}')
+            return Response(serializer.errors, status=400)
+    
+    except Card.DoesNotExist:
+        logger.error(f'Card not found for resident {resident_id} and card {card_id}')
+        return Response({'message': 'Card not found'}, status=404)
