@@ -5,6 +5,7 @@ from rest_framework.request import Request
 from rest_framework import status
 
 from finances.serializers import CardSerializer, InvoiceSerializer
+from users.models import Resident
 from .models import Card, Invoice
 
 # logger configuration
@@ -43,25 +44,83 @@ def get_invoice_by_resident(request, resident_id=None):
     else:
         return Response({'message': 'Invoice not found'}, status=status.HTTP_404_NOT_FOUND)
 
-@api_view(['PUT'])
-def update_card_details(request, resident_id=None, card_id=None):
+@api_view(['POST'])
+def create_or_update_card(request, resident_id=None):
     try:
-        # Get the card instance based on the resident ID and card ID
-        card = Card.objects.get(resident_id=resident_id, id=card_id)
+        # Check if the resident exists
+        resident = Resident.objects.get(pk=resident_id)
 
-        # Deserialize the incoming data using CardSerializer
-        serializer = CardSerializer(card, data=request.data)
+        # Check if a card already exists for this resident
+        cards = Card.objects.filter(resident=resident)
 
-        # Check if the incoming data is valid
-        if serializer.is_valid():
-            # Save the updated card details
-            serializer.save()
-            logger.info(f'Card {card_id} updated successfully for resident {resident_id}')
-            return Response(serializer.data)
+        # Prepare the card data from the request
+        card_data = {
+            'resident': resident.id,
+            'card_no': request.data.get('card_no'),
+            'card_type': request.data.get('card_type'),
+            'card_expiry': request.data.get('card_expiry'),
+            'card_cvv': request.data.get('card_cvv'),
+            'card_name': request.data.get('card_name'),
+            'card_status': 'active',
+        }
+
+        if cards.exists():
+            # If a card exists, update the first card
+            card = cards.first()
+            serializer = CardSerializer(card, data=card_data)
+
+            if serializer.is_valid():
+                serializer.save()
+                logger.info(f'Card updated successfully for resident {resident_id}')
+                return Response(serializer.data, status=200)
+            else:
+                logger.error(f'Invalid data for card update: {serializer.errors}')
+                return Response(serializer.errors, status=400)
         else:
-            logger.error(f'Invalid data for card update: {serializer.errors}')
-            return Response(serializer.errors, status=400)
-    
-    except Card.DoesNotExist:
-        logger.error(f'Card not found for resident {resident_id} and card {card_id}')
-        return Response({'message': 'Card not found'}, status=404)
+            # If no card exists, create a new one
+            serializer = CardSerializer(data=card_data)
+
+            if serializer.is_valid():
+                serializer.save()
+                logger.info(f'Card created successfully for resident {resident_id}')
+                return Response(serializer.data, status=201)
+            else:
+                logger.error(f'Invalid data for card creation: {serializer.errors}')
+                return Response(serializer.errors, status=400)
+
+    except Resident.DoesNotExist:
+        logger.error(f'Resident not found with ID: {resident_id}')
+        return Response({'message': 'Resident not found'}, status=404)
+
+
+@api_view(['POST', 'DELETE'])
+def delete_card(request, card_id):
+    try:
+        # Check if the method is POST or DELETE
+        if request.method == 'DELETE':
+            resident = Resident.objects.get(pk=1)
+
+            card_to_delete = Card.objects.filter(
+                pk=card_id,
+                resident=resident
+            )
+
+            if not card_to_delete.exists():
+                return Response({"error": "No card found to delete for the given parameters"}, status=404)
+
+            deleted_card = card_to_delete.first()
+            card_to_delete.delete()
+
+            return Response({
+                "message": "Card deleted successfully",
+                "deleted_card": {
+                    "id": deleted_card.id,
+                    "card_no": deleted_card.card_no
+                }
+            }, status=status.HTTP_200_OK)
+
+        # If method is POST, return an error (as it is not handled in this context)
+        return Response({"error": "Invalid request method"}, status=405)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
