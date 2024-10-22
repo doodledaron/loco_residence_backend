@@ -51,10 +51,21 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f'Created paid history: {paid_history}'))
 
     def create_card(self, resident):
+        # First determine the card type
+        card_type = random.choice(['visa', 'mastercard'])
+        
+        # Generate appropriate card number based on type
+        if card_type == 'visa':
+            # Visa cards start with 4 and are typically 16 digits
+            card_no = '4' + ''.join([str(random.randint(0, 9)) for _ in range(15)])
+        else:
+            # Mastercard starts with 51-55 and are 16 digits
+            card_no = str(random.randint(51, 55)) + ''.join([str(random.randint(0, 9)) for _ in range(14)])
+
         card = Card.objects.create(
             resident=resident,
-            card_no=fake.credit_card_number(),
-            card_type=random.choice(['visa', 'mastercard', 'amex']),
+            card_no=card_no,
+            card_type=card_type,
             card_expiry=fake.future_date(end_date='+10y'),
             card_cvv=fake.credit_card_security_code(),
             card_name=resident.full_name,
@@ -66,7 +77,7 @@ class Command(BaseCommand):
             card_phone=resident.phone_number,
             card_email=resident.email,
             card_dob=fake.date_of_birth(minimum_age=18, maximum_age=90),
-            card_ssn=fake.ssn(),  # Note: Malaysia doesn't use SSN, you might want to replace this
+            card_ssn=fake.ssn(),
             card_status=random.choice(['active', 'inactive']),
         )
         self.stdout.write(self.style.SUCCESS(f'Created card: {card}'))

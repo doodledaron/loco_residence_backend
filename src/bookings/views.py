@@ -21,8 +21,8 @@ def get_facilities(request):
 #get the available time slots based on facility and date
 @api_view(['GET'])
 def get_available_time_slots(request, resident_id=None):
-    facility_id = request.data.get('facility_id')  # Get facility_id from request data
-    date = request.data.get('date')  # Get date from request data
+    facility_id = request.GET.get('facility_id')  # Get facility_id from request data
+    date = request.GET.get('date')  # Get date from request data
     # Facility id and date must be provided
     if not facility_id or not date:
         return Response({"error": "Both facility and date are required."}, status=status.HTTP_400_BAD_REQUEST)
@@ -73,9 +73,9 @@ def get_available_time_slots(request, resident_id=None):
 @api_view(['GET'])
 def get_available_facility_sections(request):
     # Extract data from JSON request body
-    facility = request.data.get('facility_id')
-    date = request.data.get('date')
-    time_slots = request.data.getlist('time_slots')  # Use getlist to fetch multiple parameters
+    facility = request.GET.get('facility_id')
+    date = request.GET.get('date')
+    time_slots = request.GET.getlist('time_slots')  # Use getlist to fetch multiple parameters
 
     # Validate that all required fields are present
     if not all([facility, date]) or not time_slots:  # Check for time_slots here
