@@ -20,7 +20,7 @@ def get_facilities(request):
 
 #get the available time slots based on facility and date
 @api_view(['GET'])
-def get_available_time_slots(request):
+def get_available_time_slots(request, resident_id=None):
     facility_id = request.data.get('facility_id')  # Get facility_id from request data
     date = request.data.get('date')  # Get date from request data
     # Facility id and date must be provided
@@ -109,12 +109,11 @@ def get_available_facility_sections(request):
 
 # book a facility section based on the facility, section, date and time slot
 @api_view(['POST'])
-def book_facility_section(request):
+def book_facility_section(request, resident_id):
     facility = request.data.get('facility_id')
     date = request.data.get('date')
     time_slots = request.data.get('time_slots', [])  # List of time slots in 'HH:MM:SS' format
     section = request.data.get('section_id')
-    resident = Resident.objects.get(pk=1) # Assuming the resident is already authenticated
     
     # Validate that all required fields are present
     if not all([facility, date, time_slots, section]):
@@ -148,7 +147,7 @@ def book_facility_section(request):
     bookings = []  # List to hold created booking instances
     for time_slot in time_slots:
         booking = Booking.objects.create(
-            resident=resident,
+            resident=Resident.objects.get(pk=resident_id),
             section=section,
             time_slot=time_slot,
             booking_date=date
@@ -162,9 +161,9 @@ def book_facility_section(request):
 
 #cancel a booking based on facility, date, time slots and section
 @api_view(['POST', "DELETE"])
-def cancel_booking(request):
+def cancel_booking(request, resident_id):
     booking_id = request.data.get('booking_id')  # Get facility_id from request data
-    resident = Resident.objects.get(pk=1) # Assuming the resident is already authenticated
+    resident = Resident.objects.get(pk=resident_id) # Assuming the resident is already authenticated
     
     # Find bookings that match the criteria
     bookings_to_cancel = Booking.objects.filter(
@@ -191,8 +190,8 @@ def cancel_booking(request):
 
 #get all the bookings
 @api_view(['GET'])
-def get_all_bookings(request):
-    resident = Resident.objects.get(pk=1)  # Assuming the resident is already authenticated
+def get_all_bookings(request, resident_id):
+    resident = Resident.objects.get(pk=resident_id)  # Assuming the resident is already authenticated
     bookings = Booking.objects.filter(
         resident=resident
     )
