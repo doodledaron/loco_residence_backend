@@ -41,7 +41,7 @@ class PaidHistory(models.Model):
 class Card(models.Model):
     resident = models.ForeignKey(Resident, on_delete=models.PROTECT, related_name='card')
     card_no = models.CharField(max_length=20, unique=True)
-    card_type = models.CharField(max_length=20, choices=[('visa', 'Visa'), ('mastercard', 'Mastercard'), ('amex', 'Amex')])
+    card_type = models.CharField(max_length=20, choices=[('visa', 'Visa'), ('mastercard', 'Mastercard')])
     card_expiry = models.DateField()
     card_cvv = models.CharField(max_length=4)
     card_name = models.CharField(max_length=100)
