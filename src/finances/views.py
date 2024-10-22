@@ -44,6 +44,33 @@ def get_invoice_by_resident(request, resident_id=None):
     else:
         return Response({'message': 'Invoice not found'}, status=status.HTTP_404_NOT_FOUND)
 
+#make payment
+@api_view(['POST'])
+def make_payment(request, resident_id):
+    try:
+        resident = Resident.objects.get(pk=resident_id)
+        invoices = Invoice.objects.filter(resident=resident, status='unpaid')
+
+        if not invoices.exists():
+            return Response({'message': 'No unpaid invoices found for this resident'}, status=404)
+
+        #get the total unpaid moount
+        total_amount = sum([invoice.amount for invoice in invoices])
+
+        # Assuming payment is successful
+        for invoice in invoices:
+            invoice.status = 'paid'
+            invoice.save()
+
+        return Response({'message': f'Payment of ${total_amount} made successfully for resident {resident_id}'}, status=200)
+
+    except Resident.DoesNotExist:
+        return Response({'message': 'Resident not found'}, status=404)
+
+    except Exception as e:
+        return Response({'message': str(e)}, status=500)
+
+
 @api_view(['POST'])
 def create_or_update_card(request, resident_id=None):
     try:

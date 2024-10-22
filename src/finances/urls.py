@@ -7,5 +7,6 @@ urlpatterns = [
     path('invoice/<int:resident_id>/', views.get_invoice_by_resident, name='invoice-detail'), #get invoice by resident
     path('cards/create_update/<int:resident_id>/', views.create_or_update_card, name='create-update-card-details'),
     path('delete_card/<int:card_id>', views.delete_card),
+    path('make_payment/<int:resident_id>/', views.make_payment, name='make-payment'),
 
 ]
