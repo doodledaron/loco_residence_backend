@@ -16,14 +16,21 @@ from rest_framework import status
 from .models import Visitor
 from .serializers import VisitorSerializer
 
-
-#view all visitors
+# View all visitors
 @api_view(['GET'])
-def view_all_visitors(request, resident_id):
-    resident = Resident.objects.get(pk=resident_id)
-    visitors = Visitor.objects.filter(resident=resident)
+def view_all_visitors(request, resident_id=None):  # Make resident_id optional
+    if resident_id:  # Check if resident_id is provided
+        try:
+            resident = Resident.objects.get(pk=resident_id)
+            visitors = Visitor.objects.filter(resident=resident)
+        except Resident.DoesNotExist:
+            return Response({'error': 'Resident not found'}, status=404)
+    else:
+        visitors = Visitor.objects.all()  # Get all visitors if resident_id is not provided
+
     serializer = VisitorSerializer(visitors, many=True)
     return Response(serializer.data)
+
 
 # Django API modification
 @api_view(['POST'])
