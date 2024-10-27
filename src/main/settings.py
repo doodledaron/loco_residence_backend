@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "parking",
     "bookings",
     'utils',
+    "complaints",
 ]
 
 MIDDLEWARE = [
