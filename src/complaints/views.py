@@ -49,7 +49,7 @@ def create_complaint(request, resident_id):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
-def view_all_complaints(request, resident_id):
+def view_resident_complaints(request, resident_id):
     # Validate resident existence
     try:
         resident = Resident.objects.get(pk=resident_id)
@@ -58,6 +58,17 @@ def view_all_complaints(request, resident_id):
     
     try:
         complaints = Complaint.objects.filter(resident=resident).order_by('-date')
+        serializer = ComplaintSerializer(complaints, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Complaint.DoesNotExist:
+        return Response({'error': 'No complaints found'}, status=status.HTTP_404_NOT_FOUND)
+    
+
+@api_view(['GET'])
+def view_all_complaints(request):
+
+    try:
+        complaints = Complaint.objects.all().order_by('-date')
         serializer = ComplaintSerializer(complaints, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     except Complaint.DoesNotExist:
