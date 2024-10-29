@@ -2,9 +2,7 @@ from django.db import models
 from residence.models import Block
 from users.models import Resident
 from django.apps import apps
-
 from visitor.models import Visitor
-
 
 class Parking(models.Model):
     block = models.ForeignKey(Block, on_delete=models.PROTECT, related_name='parkings', null=True)
