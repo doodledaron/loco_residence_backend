@@ -15,6 +15,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Visitor
 from .serializers import VisitorSerializer
+from django.utils.timezone import localtime
 
 # View all visitors
 @api_view(['GET'])
@@ -139,16 +140,12 @@ def update_visitor_details(request):
 # check in visitor
 @api_view(['POST'])
 def check_in_visitor(request):
-    """
-    Check in a visitor who has previously registered.
-    Requires visitor_id in the request.
-    """
     visitor_id = request.data.get('visitor_id')
     
     if not visitor_id:
         return Response({
             'error': 'Visitor ID is required'
-        }, status=status.HTTP_400_BAD_REQUEST)
+        }, status=400)
     
     try:
         visitor = Visitor.objects.get(pk=visitor_id)
@@ -157,66 +154,64 @@ def check_in_visitor(request):
         if visitor.check_in_time:
             return Response({
                 'error': 'Visitor is already checked in'
-            }, status=status.HTTP_400_BAD_REQUEST)
+            }, status=400)
         
-        # Get current time with timezone
-        current_time = timezone.now().time()
+        # Get current time and format it
+        current_time = localtime(timezone.now())
+        formatted_time = current_time.strftime('%H:%M:%S')
+        formatted_time = datetime.strptime(formatted_time, '%H:%M:%S').time()
         
         # Update visitor check-in details
-        visitor.check_in_time = current_time
+        visitor.check_in_time = formatted_time
         visitor.save()
         
         serializer = VisitorSerializer(visitor)
         return Response({
             'message': 'Visitor checked in successfully',
             'visitor': serializer.data
-        }, status=status.HTTP_200_OK)
+        }, status=200)
         
     except Visitor.DoesNotExist:
         return Response({
             'error': 'Visitor not found'
-        }, status=status.HTTP_404_NOT_FOUND)
+        }, status=404)
 
 # check out visitor
 @api_view(['POST'])
 def check_out_visitor(request):
-    """
-    Check in a visitor who has previously registered.
-    Requires visitor_id in the request.
-    """
     visitor_id = request.data.get('visitor_id')
     
     if not visitor_id:
         return Response({
             'error': 'Visitor ID is required'
-        }, status=status.HTTP_400_BAD_REQUEST)
+        }, status=400)
     
     try:
         visitor = Visitor.objects.get(pk=visitor_id)
         
-        # Check if visitor is already checked in
+        # Check if visitor is already checked out
         if visitor.check_out_time and visitor.check_out_date:
             return Response({
                 'error': 'Visitor is already checked out'
-            }, status=status.HTTP_400_BAD_REQUEST)
+            }, status=400)
         
-      # Get current date and time with timezone
-        current_datetime = timezone.now()
-        current_date = current_datetime.date()  # Get the current date
-        current_time = current_datetime.time()   # Get the current time
+        # Get current datetime and format time
+        current_datetime = localtime(timezone.now())
+        formatted_time = current_datetime.strftime('%H:%M:%S')
+        formatted_time = datetime.strptime(formatted_time, '%H:%M:%S').time()
         
-        # Update visitor check-in details
-        visitor.check_out_time = current_time
-        visitor.check_out_date = current_date
+        # Update visitor check-out details
+        visitor.check_out_time = formatted_time
+        visitor.check_out_date = current_datetime.date()
         visitor.save()
         
         serializer = VisitorSerializer(visitor)
         return Response({
             'message': 'Visitor checked out successfully',
             'visitor': serializer.data
-        }, status=status.HTTP_200_OK)
+        }, status=200)
         
     except Visitor.DoesNotExist:
         return Response({
             'error': 'Visitor not found'
-        }, status=status.HTTP_404_NOT_FOUND)
+        }, status=404)
