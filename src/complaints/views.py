@@ -15,7 +15,7 @@ def create_complaint(request, resident_id):
     title = request.data.get('title')
     description = request.data.get('description')
     date = request.data.get('date')
-    image = request.data.get('image')
+    image = request.FILES.get('image')
 
     # Validate required fields
     if not all([title, description, date]):
@@ -37,15 +37,11 @@ def create_complaint(request, resident_id):
         resident=resident,
         title=title,
         description=description,
-        date=date,  # Now correctly formatted as a date object for Django's DateField
+        date=date,
     )
 
     if image:
-        try:
-            decoded_image = base64.b64decode(image)
-            complaint.image.save(f"{title}.png", ContentFile(decoded_image), save=False)
-        except Exception as e:
-            return Response({'error': 'Invalid image format'}, status=status.HTTP_400_BAD_REQUEST)
+        complaint.image = image
 
     complaint.save()
     serializer = ComplaintSerializer(complaint)
