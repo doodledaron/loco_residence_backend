@@ -1,5 +1,7 @@
 from django.core.management.base import BaseCommand
 
+from utils.management.commands.announcement_data_generator import AnnouncementDataGenerator
+from utils.management.commands.complaint_data_generator import ComplaintDataGenerator
 from utils.management.commands.finance_data__generator import FinanceDataGenerator
 from .user_data_generator import UserDataGenerator
 from .facility_data_generator import FacilityDataGenerator
@@ -35,6 +37,18 @@ class Command(BaseCommand):
         #Generate finances
         finance_generator = FinanceDataGenerator(self.stdout, self.style)
         finance_generator.generate_finance_data(users)
+
+        #Generate announcments
+        announcement_generator = AnnouncementDataGenerator(self.stdout, self.style)
+        announcement_generator.generate_announcements(users)
+
+        #Generate complaints
+        complaint_generator = ComplaintDataGenerator(self.stdout, self.style)
+        complaint_generator.generate_complaints(users)
+
+        #Generate complaints
+        complaint_generator = ComplaintDataGenerator(self.stdout, self.style)
+        complaint_generator.generate_complaints(users)
 
         self.stdout.write(self.style.SUCCESS('All dummy data generated successfully'))
 
