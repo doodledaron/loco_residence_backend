@@ -13,15 +13,18 @@ class VisitorDataGenerator:
     def generate_visitors(self, residents):
         for resident in residents:
             for _ in range(random.randint(1, 5)):  # Each resident has 1 to 5 visitors
+                check_in_time = datetime.now().replace(microsecond=0).time()
+                check_out_time = (datetime.now() + timedelta(hours=random.randint(1, 4))).replace(microsecond=0).time()
+                
                 visitor = Visitor.objects.create(
                     resident=resident,
                     full_name=fake.name(),
                     hp_number=fake.phone_number(),
-                    car_plate_no=fake.license_plate_car(),
+                    car_plate_no=fake.license_plate(),
                     check_in_date=datetime.now().date(),
                     check_out_date=datetime.now().date() + timedelta(days=random.randint(1, 7)),
-                    check_in_time=datetime.now().time(),
-                    check_out_time=(datetime.now() + timedelta(hours=random.randint(1, 4))).time(),
+                    check_in_time=check_in_time,
+                    check_out_time=check_out_time,
                     purpose_of_visit=random.choice(["Visitor", "Delivery", "Constructor"])
                 )
                 self.stdout.write(self.style.SUCCESS(f'Created visitor: {visitor.full_name} for resident: {resident}'))
