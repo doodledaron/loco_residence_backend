@@ -1,5 +1,8 @@
 from datetime import timedelta
+import os
 import random
+
+from django.conf import settings
 from announcements.models import Announcement
 from django.utils import timezone
 
@@ -32,13 +35,30 @@ class AnnouncementDataGenerator:
             "Please review the updated snow removal procedures for the community. Residents are responsible for clearing snow from their assigned parking spots."
         ]
 
+        # Map titles to relevant static image paths
+        self.announcement_images = [
+            "event.jpg",
+            "gymUpdate.jpg",
+            "survey.jpg",
+            "parking.jpg",
+            "recycle.jpg",
+            "deco.jpg",
+            "pestControl.jpeg",
+            "gymUpdate.jpg",
+            "meeting.jpeg",
+            "snowRemoval.jpg"
+        ]
+        self.image_directory = os.path.join(settings.MEDIA_ROOT, 'announcements/')
+
     def generate_announcements(self, residents):
         for resident in residents:
-            for title, content in zip(self.announcement_titles, self.announcement_contents):
+            for index, (title, content, image_file) in enumerate(zip(self.announcement_titles, self.announcement_contents, self.announcement_images)):
+                image_path = f'announcements/{image_file}' if image_file else None
                 announcement = Announcement.objects.create(
                     title=title,
                     content=content,
                     created_at=timezone.now() - timedelta(days=random.randint(1, 30)),
-                    updated_at=timezone.now()
+                    updated_at=timezone.now(),
+                    image=image_path
                 )
                 self.stdout.write(self.style.SUCCESS(f'Created announcement: {announcement.title} for resident: {resident}'))
