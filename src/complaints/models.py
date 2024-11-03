@@ -9,9 +9,18 @@ class Complaint(models.Model):
         ('Resolved', 'Resolved'),
         ('Rejected', 'Rejected'),
     ]
+
+    CATEGORY_CHOICES = [
+        ('Facility', 'Facility'),
+        ('Payment', 'Payment'),
+        ('Bookings', 'Bookings'),
+        ('Services', 'Services'),
+        ('Other', 'Other'),
+    ]
     resident = models.ForeignKey(Resident, on_delete=models.CASCADE, related_name='complaints', null=True)
     title = models.CharField(max_length=255)
     description = models.TextField()
+    category = models.CharField(max_length=255, choices=CATEGORY_CHOICES,null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Received')
     date = models.DateField()  # Use DateField for date only
     complaint_created_date = models.DateTimeField(auto_now_add=True)
