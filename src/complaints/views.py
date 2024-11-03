@@ -216,7 +216,8 @@ def create_complaint(request, resident_id):
         category = request.data.get('category')
         date = request.data.get('date')
         image = request.FILES.get('image')
-        force_submit = request.data.get('force_submit', False)
+        # If the value from flutter is 'true', then force_submit will be assigned True, else False
+        force_submit = request.data.get('force_submit').lower() == 'true' 
         new_category = None
 
         # Validate required fields
