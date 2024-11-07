@@ -375,6 +375,19 @@ def create_complaint(request, resident_id):
                 return Response({
                     'error': ERROR_MESSAGES['similarity_check'].format(str(e))
                 }, status=status.HTTP_400_BAD_REQUEST)
+        
+        #If user press submit anyway, assuming the user has already passed the content analysis(image,title and description) 
+        #we still need to check the category analysis for 2nd time before saving the complaint to the database
+        if force_submit: 
+            try:
+                category_analysis = analyze_category(title, description, category, model)
+                if not category_analysis.get('category_matches') and category_analysis.get('confidence_score', 0) > 0.7:
+                    new_category = category_analysis.get('suggested_category')
+                    logger.info(f"Category changed from {category} to {new_category}")
+            except Exception as e:
+                return Response({
+                    'error': ERROR_MESSAGES['category_analysis'].format(str(e))
+                }, status=status.HTTP_400_BAD_REQUEST)
 
         # Create and save complaint - common block for both force_submit cases
         complaint = Complaint(
